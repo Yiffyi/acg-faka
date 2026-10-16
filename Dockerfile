@@ -9,41 +9,17 @@ ENV ACG_HOME=/var/www/html \
     COMPOSER_ALLOW_SUPERUSER=1
 
 # Install extensions without keeping compiler toolchains in the final image.
-COPY --from=mlocati/php-extension-installer:2 /usr/bin/install-php-extensions /usr/local/bin/
-RUN --mount=type=secret,id=proxy_ca,required=false \
-    set -eux; \
-    ca_bundle=/tmp/acg-ca-bundle.crt; \
-    if [ -f /run/secrets/proxy_ca ]; then \
-        cat /etc/ssl/certs/ca-certificates.crt /run/secrets/proxy_ca > "${ca_bundle}"; \
-    else \
-        cp /etc/ssl/certs/ca-certificates.crt "${ca_bundle}"; \
-    fi; \
-    mkdir -p /tmp/acg-php-conf; \
-    printf '%s\n' \
-        'openssl.cafile=/tmp/acg-ca-bundle.crt' \
-        'curl.cainfo=/tmp/acg-ca-bundle.crt' \
-        > /tmp/acg-php-conf/ca.ini; \
-    mkdir -p /tmp/acg-pecl /tmp/acg-pecl-tmp; \
-    curl --fail --location --cacert "${ca_bundle}" \
-        https://pecl.php.net/get/redis-6.3.0.tgz \
-        --output /tmp/acg-redis.tgz; \
-    tar -xzf /tmp/acg-redis.tgz -C /tmp/acg-pecl-tmp; \
-    cp /tmp/acg-pecl-tmp/package.xml /tmp/acg-pecl/package.xml; \
-    cp -a /tmp/acg-pecl-tmp/redis-6.3.0/. /tmp/acg-pecl/; \
-    PHP_INI_SCAN_DIR="/usr/local/etc/php/conf.d:/tmp/acg-php-conf" \
-    SSL_CERT_FILE="${ca_bundle}" \
-    CURL_CA_BUNDLE="${ca_bundle}" \
-    install-php-extensions \
+ADD --chmod=0755 https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+
+RUN install-php-extensions \
         bcmath \
         curl \
         gd \
         mbstring \
         opcache \
         pdo_mysql \
-        /tmp/acg-pecl \
-        zip; \
-    rm -rf /tmp/acg-ca-bundle.crt /tmp/acg-php-conf /tmp/acg-pecl /tmp/acg-pecl-tmp /tmp/acg-redis.tgz; \
-    rm -f /usr/local/bin/install-php-extensions
+        redis \
+        zip
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
