@@ -56,10 +56,10 @@
 ### 方式一：Docker（推薦）
 
 ```bash
-docker run -d --name faka -p 80:80 -v acg_data:/data --restart unless-stopped ghcr.io/lizhipay/acg-faka:latest
+docker compose -f docker-compose.yml up -d --build
 ```
 
-映像檔內建 MariaDB 與 Redis，啟動後開啟 `http://伺服器IP` 即可進入安裝精靈，資料庫資訊已自動填好。網站的所有資料都在 `/data` 磁碟區裡，務必掛載。需要使用獨立的 MySQL 時，請參考 [Docker 安裝文件](https://faka.wiki/zh-tw/install/docker)。
+PHP-FPM、Caddy、MariaDB 與 Redis 分別執行在獨立容器中。啟動後開啟 `http://伺服器IP:8080` 即可進入安裝精靈，資料庫資訊已自動填好。PHP-FPM 映像檔也會由 GitHub Actions 發布至 GHCR；詳細設定請參考 [Docker 安裝文件](https://faka.wiki/zh-tw/install/docker)。
 
 ### 方式二：寶塔面板（aaPanel）／手動安裝
 
@@ -71,7 +71,7 @@ docker run -d --name faka -p 80:80 -v acg_data:/data --restart unless-stopped gh
 | URL 重寫（偽靜態） | 必須設定，見下方 |
 
 1. 取得原始碼：`composer create-project lizhipay/acg-faka`，或從 [GitHub](https://github.com/lizhipay/acg-faka)、[faka.wiki/download.php](https://faka.wiki/download.php) 下載壓縮檔。
-2. 設定 URL 重寫：Apache 不用設定，根目錄已附 `.htaccess`；Nginx 請把下面整段貼進網站設定（寶塔：網站 → 偽靜態）。
+2. 將網站根目錄設為原始碼中的 `public` 目錄。Apache 不用額外設定，`public/.htaccess` 已附上；Nginx 請把下面整段貼進網站設定（寶塔：網站 → 偽靜態）。應用程式碼、設定與相依套件都應留在網站根目錄之外。
 
    ```nginx
    if ($uri ~* "^/(?!(?-i:index\.php)(/|$)).*\.php(/|$)")             { return 404; }

@@ -56,10 +56,10 @@ Automatic card-key delivery, plugin-based payments, sub-stores, store-to-store s
 ### Option 1: Docker (recommended)
 
 ```bash
-docker run -d --name faka -p 80:80 -v acg_data:/data --restart unless-stopped ghcr.io/lizhipay/acg-faka:latest
+docker compose -f docker-compose.yml up -d --build
 ```
 
-The image bundles MariaDB and Redis. Once it starts, open `http://your-server-ip` and the installer comes up with the database details already filled in. Everything the site stores lives in the `/data` volume, so always mount it. To use a separate MySQL server, see the [Docker guide](https://faka.wiki/en/install/docker).
+PHP-FPM, Caddy, MariaDB and Redis run as separate containers. Once they start, open `http://your-server-ip:8080` and the installer comes up with the database details already filled in. The PHP-FPM image is also published to GHCR by GitHub Actions; see the [Docker guide](https://faka.wiki/en/install/docker) for configuration.
 
 ### Option 2: aaPanel or manual install
 
@@ -71,7 +71,7 @@ The image bundles MariaDB and Redis. Once it starts, open `http://your-server-ip
 | URL rewriting | Required, see below |
 
 1. Get the source: `composer create-project lizhipay/acg-faka`, or download a zip from [GitHub](https://github.com/lizhipay/acg-faka) or [faka.wiki/download.php](https://faka.wiki/download.php).
-2. Set up URL rewriting. Apache needs nothing, because the root directory already ships a `.htaccess`. On Nginx, paste the whole block below into the site configuration (aaPanel: Website → URL rewrite).
+2. Set the site document root to the `public` directory in the source tree. Apache needs no extra rules because `public/.htaccess` is included. On Nginx, paste the whole block below into the site configuration (aaPanel: Website → URL rewrite). Keep the application code, configuration and dependencies outside the document root.
 
    ```nginx
    if ($uri ~* "^/(?!(?-i:index\.php)(/|$)).*\.php(/|$)")             { return 404; }

@@ -56,10 +56,10 @@ PHP 8 で作られた、オープンソースの自動発送ストアシステ�
 ### 方法 1：Docker（おすすめ）
 
 ```bash
-docker run -d --name faka -p 80:80 -v acg_data:/data --restart unless-stopped ghcr.io/lizhipay/acg-faka:latest
+docker compose -f docker-compose.yml up -d --build
 ```
 
-イメージには MariaDB と Redis が含まれています。起動後に `http://サーバーのIP` を開くとインストールウィザードが表示され、データベース情報は入力済みです。サイトのデータはすべて `/data` ボリュームに保存されるので、必ずマウントしてください。独立した MySQL を使う場合は [Docker のドキュメント](https://faka.wiki/ja/install/docker)を参照してください。
+PHP-FPM、Caddy、MariaDB、Redis はそれぞれ別のコンテナで動作します。起動後に `http://サーバーのIP:8080` を開くとインストールウィザードが表示され、データベース情報は入力済みです。PHP-FPM イメージは GitHub Actions から GHCR にも公開されます。詳しくは [Docker ドキュメント](https://faka.wiki/ja/install/docker)を参照してください。
 
 ### 方法 2：aaPanel（宝塔）／手動インストール
 
@@ -71,7 +71,7 @@ docker run -d --name faka -p 80:80 -v acg_data:/data --restart unless-stopped gh
 | URL リライト | 必須（下記参照） |
 
 1. ソースを入手します：`composer create-project lizhipay/acg-faka`、または [GitHub](https://github.com/lizhipay/acg-faka) か [faka.wiki/download.php](https://faka.wiki/download.php) から zip をダウンロードします。
-2. URL リライトを設定します。Apache はルートに `.htaccess` が含まれているので設定不要です。Nginx の場合は、次のブロックをまるごとサイト設定に貼り付けてください（aaPanel：Website → URL rewrite）。
+2. サイトのドキュメントルートをソースツリーの `public` ディレクトリに設定します。`public/.htaccess` が含まれているため Apache の追加設定は不要です。Nginx の場合は、次のブロックをまるごとサイト設定に貼り付けてください（aaPanel：Website → URL rewrite）。アプリケーションコード、設定、依存関係はドキュメントルートの外に置きます。
 
    ```nginx
    if ($uri ~* "^/(?!(?-i:index\.php)(/|$)).*\.php(/|$)")             { return 404; }

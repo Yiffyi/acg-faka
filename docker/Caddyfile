@@ -1,0 +1,40 @@
+:80 {
+	root * /srv/public
+	encode gzip
+
+	# Uploaded files and the configured favicon are stored in the app's /data
+	# volume, which is mounted read-only in this container.
+	@favicon path /favicon.ico
+	handle @favicon {
+		root * /app-data/assets_cache
+		file_server
+	}
+
+	@uploads path /assets/cache/*
+	handle @uploads {
+		uri strip_prefix /assets/cache
+		root * /app-data/assets_cache
+		file_server
+	}
+
+	# Serve existing non-PHP assets directly. Everything else is sent through
+	# public/index.php with the original path in the application's `s` query.
+	@static {
+		file
+		not path /
+		not path /index.php
+		not path_regexp php (?i)\.php(?:/|$)
+	}
+	handle @static {
+		file_server
+	}
+
+	handle {
+		rewrite * /index.php?s={path}&{query}
+		php_fastcgi app:9000 {
+			# The Caddy image stores public files under /srv, while PHP-FPM
+			# sees the application at /var/www/html.
+			root /var/www/html/public
+		}
+	}
+}

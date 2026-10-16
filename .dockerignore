@@ -24,9 +24,8 @@
 !vendor/**
 !composer.json
 !composer.lock
-!index.php
 !favicon.ico
-!.htaccess
+!public/**
 !LICENSE
 !README.md
 
